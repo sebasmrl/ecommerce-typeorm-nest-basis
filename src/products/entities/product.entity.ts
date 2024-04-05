@@ -27,8 +27,8 @@ export class Product {
     @Column({ type:'text'})
     gender:string;
 
-
-    //tags
+    @Column('text',{ array:true, default:[] })
+    tags:string[]
     //images
 
     
@@ -44,7 +44,11 @@ export class Product {
 
     @BeforeUpdate()
     checkUpdateSlugProperty(){
-        
+        this.slug = this.slug
+            .toLowerCase()
+            .replaceAll(' ','_')
+            .replaceAll("'","");
+    
     }
 
 }

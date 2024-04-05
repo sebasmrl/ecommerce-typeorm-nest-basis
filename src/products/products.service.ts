@@ -1,9 +1,11 @@
-import { BadRequestException, Injectable, InternalServerErrorException, Logger } from '@nestjs/common';
+import { BadRequestException, Injectable, InternalServerErrorException, Logger, NotFoundException } from '@nestjs/common';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Product } from './entities/product.entity';
 import { Repository } from 'typeorm';
+import { PaginationDto } from 'src/common/dtos/pagination.dto';
+import { validate as isUUID } from 'uuid'
 
 @Injectable()
 export class ProductsService {
@@ -12,7 +14,7 @@ export class ProductsService {
   constructor(
     @InjectRepository(Product)
     private readonly productRepository: Repository<Product>,
-  ) {}
+  ) { }
 
 
   async create(createProductDto: CreateProductDto) {
@@ -28,29 +30,68 @@ export class ProductsService {
 
   }
 
-  findAll() {
-    return `This action returns all products`;
+  async findAll(paginationDto: PaginationDto) {
+
+    const { limit = 10, offset = 0 } = paginationDto;
+
+    const products = await this.productRepository.find({
+      take: limit, //tomar
+      skip: offset,//saltar
+      //TODO: Relaciones
+    });
+    return products;
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} product`;
+  async findOne(searchTerm: string) {
+
+    let product: Product;
+
+    if (isUUID(searchTerm)) {
+      product = await this.productRepository.findOneBy({ id: searchTerm });
+    } else {
+      //QUERYBUILDER
+      const queryBuilder = this.productRepository.createQueryBuilder();
+      product = await queryBuilder
+        .where(`UPPER(title) =:title or slug=:slug`,
+          { title: searchTerm.toUpperCase(), slug: searchTerm.toLowerCase() })
+        .getOne();
+    }
+
+    if (!product)
+      throw new NotFoundException(`Producto con id : ${searchTerm} no encontrado`);
+    return product;
   }
 
-  update(id: number, updateProductDto: UpdateProductDto) {
-    return `This action updates a #${id} product`;
+
+  async update(id: string, updateProductDto: UpdateProductDto) {
+    const product = await this.productRepository.preload({
+      id: id,
+      ...updateProductDto
+    });
+
+    if (!product) throw new NotFoundException(`Producto con id: ${id} no existe en DB`);
+
+    try{
+      return await this.productRepository.save(product);
+    }catch(error){
+      this.handleDBExceptions(error);
+
+    }
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} product`;
+
+  async remove(id: string) {
+    const product = await this.findOne(id);
+    await this.productRepository.remove(product);
+    return product;
   }
 
 
   //Handler methods
-  private handleDBExceptions(error:any){
-    
-    if(error.code ==='23505') throw new BadRequestException(error?.detail);
+  private handleDBExceptions(error: any) {
     this.logger.error(error);
-    throw new InternalServerErrorException("Unexpected erorr, check server logs");
+    if (error.code === '23505') throw new BadRequestException(error?.detail);
+    throw new InternalServerErrorException("Unexpected error, check server logs");
   }
 
 
