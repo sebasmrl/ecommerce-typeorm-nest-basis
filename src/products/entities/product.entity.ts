@@ -1,4 +1,5 @@
-import { BeforeInsert, BeforeUpdate, Column, Entity, PrimaryGeneratedColumn } from "typeorm";
+import { BeforeInsert, BeforeUpdate, Column, Entity, OneToMany, PrimaryGeneratedColumn } from "typeorm";
+import { ProductImage } from "./product-image.entity";
 
 @Entity()
 export class Product {
@@ -29,7 +30,18 @@ export class Product {
 
     @Column('text',{ array:true, default:[] })
     tags:string[]
-    //images
+
+    //un producto puede tener muchas imagenes
+    @OneToMany(
+        ()=> ProductImage,
+        (productImage)=>productImage.product,
+        { cascade: true, eager:true } 
+    )
+    images?:ProductImage[];
+    //eager: true carga automaicamente todas las entidades que estan relacionadas 
+    //todos los find lo tienen, pero esta deshabilitada para las queryBuilder, se debe usar leftJoinAndSelect para cargar la relación.
+    
+
 
     
     @BeforeInsert()
