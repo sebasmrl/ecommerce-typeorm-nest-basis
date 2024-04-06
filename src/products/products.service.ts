@@ -3,7 +3,7 @@ import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 
-import { Repository } from 'typeorm';
+import { DataSource, Repository } from 'typeorm';
 import { PaginationDto } from 'src/common/dtos/pagination.dto';
 import { validate as isUUID } from 'uuid'
 
@@ -19,6 +19,8 @@ export class ProductsService {
 
     @InjectRepository(ProductImage)
     private readonly productImageRepository: Repository<ProductImage>,
+
+    private readonly datasource: DataSource, //todo lo relacionado a la conexion a DB
   ) { }
 
 
@@ -92,21 +94,38 @@ export class ProductsService {
        images: images.map( img=> img.url)
     }
   }
-  
+
 
 
   async update(id: string, updateProductDto: UpdateProductDto) {
-    const product = await this.productRepository.preload({
-      id: id,
-      ...updateProductDto,
-      images:[]
-    });
 
+    const { images, ...dataToUpdate }= updateProductDto;
+
+    const product = await this.productRepository.preload({ id, ...dataToUpdate });
     if (!product) throw new NotFoundException(`Producto con id: ${id} no existe en DB`);
 
+    //Create QueryRunner
+    //definir los procedimientos, solo hay commit si todos se cumplen, sino rollback
+    const queryRunner = this.datasource.createQueryRunner();
+    await queryRunner.connect(); //conectarse a db
+    await queryRunner.startTransaction();
+
     try{
-      return await this.productRepository.save(product);
+      if(images) { 
+        await queryRunner.manager.delete(ProductImage, { product: {id: id} })
+        product.images = images.map( img => this.productImageRepository.create({url:img}));
+      }
+
+      //return await this.productRepository.save(product);
+      await queryRunner.manager.save(product);
+      await queryRunner.commitTransaction();
+      await queryRunner.release(); //cerrar queryRunner
+
+      return this.findOnePlain(id); //reutilizacion
+      
     }catch(error){
+      await queryRunner.rollbackTransaction();
+      await queryRunner.release(); 
       this.handleDBExceptions(error);
 
     }
@@ -129,3 +148,21 @@ export class ProductsService {
 
 
 }
+
+
+/*   async update(id: string, updateProductDto: UpdateProductDto) {
+    const product = await this.productRepository.preload({
+      id: id,
+      ...updateProductDto,
+      images:[]
+    });
+
+    if (!product) throw new NotFoundException(`Producto con id: ${id} no existe en DB`);
+
+    try{
+      return await this.productRepository.save(product);
+    }catch(error){
+      this.handleDBExceptions(error);
+
+    }
+  } */

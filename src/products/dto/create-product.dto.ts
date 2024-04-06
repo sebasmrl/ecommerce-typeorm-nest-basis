@@ -3,6 +3,7 @@ import { IsArray, IsIn, IsInt, IsNumber,
     MinLength } from "class-validator";
 
 export class CreateProductDto {
+
     @IsString()
     @MinLength(1)
     title:string;
