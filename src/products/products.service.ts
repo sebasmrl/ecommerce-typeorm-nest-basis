@@ -133,6 +133,7 @@ export class ProductsService {
 
 
   async remove(id: string) {
+    //puede hacerse mediante transaccion idealmente
     const product = await this.findOne(id);
     await this.productRepository.remove(product);
     return product;
@@ -144,6 +145,23 @@ export class ProductsService {
     this.logger.error(error);
     if (error.code === '23505') throw new BadRequestException(error?.detail);
     throw new InternalServerErrorException("Unexpected error, check server logs");
+  }
+
+  /** 
+  *@autor 'Sebastian Morales'
+  *@description 'Use this method only dev environment for clear DB and insert new SEED
+  */
+  async deleteAllProductsForSeed() {
+    const query = this.productRepository.createQueryBuilder('product');
+
+    try {
+      return await query
+                  .delete()
+                  .where({})
+                  .execute();
+    } catch (error) {
+      this.handleDBExceptions(error);
+    }
   }
 
 
