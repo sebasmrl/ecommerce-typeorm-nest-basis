@@ -26,3 +26,7 @@ http://localhost:3000/api/seed
 
 7. Levantar servidor liveRoloading: ```npm run start:dev```
 
+
+## Dependencias
+ npm i @nestjs/serve-static
+
