@@ -8,6 +8,7 @@ import { PaginationDto } from 'src/common/dtos/pagination.dto';
 import { validate as isUUID } from 'uuid'
 
 import { Product, ProductImage } from './entities';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class ProductsService {
@@ -21,6 +22,7 @@ export class ProductsService {
     private readonly productImageRepository: Repository<ProductImage>,
 
     private readonly datasource: DataSource, //todo lo relacionado a la conexion a DB
+    private readonly configService: ConfigService
   ) { }
 
 
@@ -58,7 +60,7 @@ export class ProductsService {
     });
     return products.map( product => ({
         ...product, 
-        images: product.images.map( img => img.url)
+        images: product.images.map( img => `${this.configService.get('HOST_API')}/files/product/${img.url}`)
     }));
   }
 
@@ -91,7 +93,7 @@ export class ProductsService {
     const { images=[], ...restProduct} = await this.findOne(searchTerm);
     return {
        ...restProduct,
-       images: images.map( img=> img.url)
+       images: images.map( img=>  `${this.configService.get('HOST_API')}/files/product/${img.url}`)
     }
   }
 
