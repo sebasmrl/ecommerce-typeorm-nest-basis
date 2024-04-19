@@ -14,6 +14,7 @@ export class FilesController {
     private readonly configService: ConfigService
   ) {}
 
+  
   @Get('product/:imageName')
   findProductImage(
     @Param('imageName') imageName:string,
@@ -47,8 +48,6 @@ export class FilesController {
       secureUrl
     };
   }
-
-
 
 
 
