@@ -28,6 +28,9 @@ http://localhost:3000/api/seed
 
 
 ## Dependencias
- npm i @nestjs/serve-static
- npm i bcrypt | npm i -D @types/bcrypt
+npm i @nestjs/serve-static
+npm i bcrypt | npm i -D @types/bcrypt
+npm i @nestjs/passport passport   | para autenticacion
+npm i @nestjs/jwt passport-jwt
+npm i -D @types/passport-jwt
 
