@@ -11,7 +11,5 @@ export class AuthController {
   createUser(@Body() createAuthDto: CreateUserDto) {
     return this.authService.create(createAuthDto);
   }
-
-
   
 }
