@@ -13,6 +13,7 @@ import { User } from "../entities/user.entity";
 @Injectable() //add to providers and exports in module fie
 export class JwtStrategy extends PassportStrategy(Strategy){
     //La estrategia es para dar seguridad a los endpoints
+    //La estrategia la usa por defecto el AuthGuard
 
     constructor(
         @InjectRepository(User) 
@@ -28,9 +29,9 @@ export class JwtStrategy extends PassportStrategy(Strategy){
 
     //se llamara cuando el jwt no haya expirado y la firma hace match con el payload
     async validate(payload:JWTPayload): Promise<User>{
-        const { email } = payload;
+        const { id } = payload;
 
-        const user  = await this.userRepository.findOneBy({email});
+        const user  = await this.userRepository.findOneBy({id:id});
         if(!user) throw new UnauthorizedException('Token os not valid')    
 
         if(!user.isActive) throw new UnauthorizedException('User is inactive')    

@@ -37,7 +37,7 @@ export class AuthService {
       //TODO: Return JWT like response
       return {
         ...user, 
-        token: this.generateJwt({email: user.email})
+        token: this.generateJwt({id: user.id})
       }
 
     } catch (e) {
@@ -51,7 +51,7 @@ export class AuthService {
 
       const user = await this.userRepository.findOne({
         where: { email: email}, 
-        select: {email:true, password:true}
+        select: {email:true, password:true, id:true}
       });
 
       if(!user) 
@@ -62,7 +62,7 @@ export class AuthService {
 
       return {
         ...user, 
-        token: this.generateJwt({email: user.email})
+        token: this.generateJwt({id: user.id})
       }
   }
 
@@ -70,6 +70,7 @@ export class AuthService {
   
   private generateJwt(payload: JWTPayload){
     const token = this.jwtService.sign(payload);
+    console.log(payload)
     return token;
   }
   
