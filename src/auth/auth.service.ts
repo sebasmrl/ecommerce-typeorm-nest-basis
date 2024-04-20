@@ -70,7 +70,6 @@ export class AuthService {
   
   private generateJwt(payload: JWTPayload){
     const token = this.jwtService.sign(payload);
-    console.log(payload)
     return token;
   }
   
