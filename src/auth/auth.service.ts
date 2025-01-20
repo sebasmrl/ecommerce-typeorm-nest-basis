@@ -53,7 +53,7 @@ export class AuthService {
         where: { email: email}, 
         select: {email:true, password:true, id:true}
       });
-
+        
       if(!user) 
         throw new UnauthorizedException('Credentials are not valid (email)');
 

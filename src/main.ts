@@ -11,9 +11,13 @@ async function bootstrap() {
       whitelist:true,
       forbidNonWhitelisted:true,
     })
-  )
+  ) 
   app.setGlobalPrefix('/api');
   await app.listen(process.env.PORT);
   logger.log(`Backend running on PORT:${process.env.PORT}`)
 }
 bootstrap();
+
+
+
+
